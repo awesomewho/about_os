@@ -1,0 +1,46 @@
+Linux Policy-Based Routing
+
+
+基于策略的路由算法特点
+支持多个路由表
+支持根据数据包属性(源地址、目的地址、协议、端口、数据包大小、内容)选择不同的路由表
+
+Linux最多支持255张路由表,每张路由表有一个table id和table name,Linux内置４张表:
+cat /etc/iproute2/rt_tables
+# reserved values
+255     local
+254     main
+253     default
+0       unspec
+
+0 系统保留
+255 本地路由表,本地地址,广播地址,NAT地址存放此表,操作系统自动维护,管理员无法更改
+254 主路由表,如果配置时没有指明路由所属的路由表,默认存放在此表,ip route list|route -n|netstat -rn查询到的路由条目就是main路由表中的记录
+253 默认路由存放的位置
+
+系统管理员可以新增路由表,新增路由表table id和table name需要放置在/etc/iproute2/rt_tables
+ip route flush
+ip route add
+
+路由表根据系统设置的rule进行路由选择,内核会为系统配置３条默认的规则,通过ip rule查询
+ip rule show
+0:      from all lookup local 
+32766:  from all lookup main 
+32767:  from all lookup default 
+
+第一列表示规则优先级 from all表示匹配的对象　lookup + 路由表名称表示要查询的路由表名
+第一条规则: 匹配所有数据包,查询local路由表进行路由
+第二条规则: 匹配所有数据包,查询main路由表进行路由
+第三条规则: 匹配所有数据包,查询默认路由表进行路由
+
+查询路由表是根据优先级从上往下依次查询,如果查询到默认路由都没有查询到路由,则路由失败
+
+ip rule 配置策略路由
+ip rule add
+ip rule del
+
+
+
+
+
+
